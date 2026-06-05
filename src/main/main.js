@@ -18,6 +18,9 @@ function writeDailyData(data) {
   fs.writeFileSync(getDailyFilePath(), JSON.stringify(data), "utf8");
 }
 
+// Set config directory to .ai-quota-monitor
+app.setPath("userData", path.join(app.getPath("appData"), ".ai-quota-monitor"));
+
 let mainWindow;
 let tray;
 let isAlwaysOnTop = true;
@@ -68,7 +71,7 @@ function createTray() {
   const iconPath = path.join(__dirname, "../../assets/icon.ico");
   const icon = nativeImage.createFromPath(iconPath);
   tray = new Tray(icon);
-  tray.setToolTip("Codex Quota Widget");
+  tray.setToolTip("AI 额度监控");
   rebuildTrayMenu();
   tray.on("click", toggleWindow);
 }

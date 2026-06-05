@@ -1,16 +1,16 @@
 
-# Codex LED Widget
+# AI Quota Monitor
 
 <p align="center">
   <img src="assets/1.png" width="360" />
 </p>
 
 <p align="center">
-  <strong>A tiny liquid-glass Windows desktop widget for monitoring your Codex usage quota & DeepSeek balance.</strong>
+  <strong>A lightweight tray dashboard for monitoring AI service quotas, balances, and usage.</strong>
 </p>
 
 <p align="center">
-  <strong>一个用于查看本机 Codex 剩余额度与 DeepSeek 余额的 Windows 桌面悬浮小组件。</strong>
+  <strong>一个轻量级桌面托盘工具，用于展示和统计各类 AI 服务的额度、余额与用量。</strong>
 </p>
 
 <p align="center">
@@ -23,7 +23,7 @@
 
 # 中文说明
 
-Codex LED Widget 是一个 Windows 桌面悬浮小组件，用于显示本机 Codex 剩余额度与 DeepSeek 余额。
+AI Quota Monitor 是一个 Windows 桌面悬浮小组件，用于显示本机 Codex 剩余额度与 DeepSeek 余额。
 
 它采用透明液态玻璃质感界面，通过红、黄、绿三种 LED 状态，让你不用频繁打开命令行或页面，也能快速知道 Codex 额度是否快用完。
 
@@ -86,7 +86,7 @@ Codex LED Widget 是一个 Windows 桌面悬浮小组件，用于显示本机 Co
 
 请前往 **Releases** 页面下载最新版 Windows `.exe` 文件：
 
-👉 [前往 Releases 下载](https://github.com/sailoun601349/codex-led-widget/releases)
+👉 [前往 Releases 下载](https://github.com/sailoun601349/ai-quota-monitor/releases)
 
 当前版本：`v1.0`
 
@@ -118,7 +118,7 @@ set DEEPSEEK_API_KEY=sk-your-key-here
 
 ## 📦 使用方法
 
-1. 打开 [Releases](https://github.com/sailoun601349/codex-led-widget/releases) 页面。
+1. 打开 [Releases](https://github.com/sailoun601349/ai-quota-monitor/releases) 页面。
 2. 下载最新版本的 `.exe` 文件。
 3. 确保电脑上已经安装并登录 Codex。
 4. 双击运行 `.exe`。
@@ -141,7 +141,7 @@ set DEEPSEEK_API_KEY=sk-your-key-here
 
 ## 🔐 隐私说明
 
-Codex LED Widget 设计目标是本地化、轻量、隐私友好。
+AI Quota Monitor 设计目标是本地化、轻量、隐私友好。
 
 - 使用本机已有的 Codex 登录状态
 - 不需要你手动输入 Token
@@ -158,8 +158,8 @@ Codex LED Widget 设计目标是本地化、轻量、隐私友好。
 克隆仓库：
 
 ```bash
-git clone https://github.com/sailoun601349/codex-led-widget.git
-cd codex-led-widget
+git clone https://github.com/sailoun601349/ai-quota-monitor.git
+cd ai-quota-monitor
 ```
 
 安装依赖：
@@ -193,7 +193,7 @@ npm run build
 ## 📁 项目结构
 
 ```txt
-codex-led-widget/
+ai-quota-monitor/
 ├─ assets/            # 截图、图标和图片资源
 ├─ src/
 │  ├─ main/
@@ -257,7 +257,7 @@ codex-led-widget/
 
 ## Credits
 
-本项目基于 [xicunwus2025-sys/codex-led-widget](https://github.com/xicunwus2025-sys/codex-led-widget) 改进和扩展。
+本项目基于 [xicunwus2025-sys/ai-quota-monitor](https://github.com/xicunwus2025-sys/ai-quota-monitor) 改进和扩展。
 
 ### 新增功能
 
@@ -271,7 +271,7 @@ codex-led-widget/
 ### 原作者
 
 - 原始项目：[@xicunwus2025-sys](https://github.com/xicunwus2025-sys)
-- 原始仓库：[codex-led-widget](https://github.com/xicunwus2025-sys/codex-led-widget)
+- 原始仓库：[ai-quota-monitor](https://github.com/xicunwus2025-sys/ai-quota-monitor)
 
 ---
 
@@ -293,7 +293,7 @@ MIT License
 
 # English
 
-Codex LED Widget is a small Windows desktop widget that shows your local Codex usage quota and DeepSeek balance.
+AI Quota Monitor is a small Windows desktop widget that shows your local Codex usage quota and DeepSeek balance.
 
 It uses a transparent liquid-glass style interface and a simple red / yellow / green LED indicator, so you can quickly check whether your Codex quota is still available without repeatedly opening a terminal or checking manually.
 
@@ -356,7 +356,7 @@ It uses a transparent liquid-glass style interface and a simple red / yellow / g
 
 Download the latest Windows `.exe` from the **Releases** page:
 
-👉 [Download from Releases](https://github.com/sailoun601349/codex-led-widget/releases)
+👉 [Download from Releases](https://github.com/sailoun601349/ai-quota-monitor/releases)
 
 Current version: `v1.0`
 
@@ -372,7 +372,7 @@ Current version: `v1.0`
 
 ## 📦 How to Use
 
-1. Go to the [Releases](https://github.com/sailoun601349/codex-led-widget/releases) page.
+1. Go to the [Releases](https://github.com/sailoun601349/ai-quota-monitor/releases) page.
 2. Download the latest `.exe` file.
 3. Make sure Codex is installed and signed in on your computer.
 4. Double-click the `.exe` to run the widget.
@@ -395,7 +395,7 @@ The remaining quota is calculated from Codex usage data available on your local 
 
 ## 🔐 Privacy
 
-Codex LED Widget is designed to be local and privacy-friendly.
+AI Quota Monitor is designed to be local and privacy-friendly.
 
 * It uses your existing local Codex sign-in state.
 * It does **not** ask you to enter a token.
@@ -410,8 +410,8 @@ Codex LED Widget is designed to be local and privacy-friendly.
 Clone the repository:
 
 ```bash
-git clone https://github.com/sailoun601349/codex-led-widget.git
-cd codex-led-widget
+git clone https://github.com/sailoun601349/ai-quota-monitor.git
+cd ai-quota-monitor
 ```
 
 Install dependencies:
@@ -445,7 +445,7 @@ The output file will be generated in the `dist` folder.
 ## 📁 Project Structure
 
 ```txt
-codex-led-widget/
+ai-quota-monitor/
 ├─ assets/            # Screenshots, icons and images
 ├─ src/
 │  ├─ main/
@@ -490,7 +490,7 @@ No. The widget is intended to read and display local quota status only.
 
 ## Credits
 
-This project is based on [xicunwus2025-sys/codex-led-widget](https://github.com/xicunwus2025-sys/codex-led-widget) with enhancements.
+This project is based on [xicunwus2025-sys/ai-quota-monitor](https://github.com/xicunwus2025-sys/ai-quota-monitor) with enhancements.
 
 ### Additional Features
 
@@ -504,7 +504,7 @@ This project is based on [xicunwus2025-sys/codex-led-widget](https://github.com/
 ### Original Author
 
 - Original project: [@xicunwus2025-sys](https://github.com/xicunwus2025-sys)
-- Original repo: [codex-led-widget](https://github.com/xicunwus2025-sys/codex-led-widget)
+- Original repo: [ai-quota-monitor](https://github.com/xicunwus2025-sys/ai-quota-monitor)
 
 ---
 

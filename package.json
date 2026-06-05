@@ -1,9 +1,9 @@
 {
-  "name": "codex-led-widget",
+  "name": "ai-quota-monitor",
   "version": "1.0.0",
-  "description": "Windows desktop LED widget for showing local Codex usage quota.",
+  "description": "A lightweight tray dashboard for monitoring AI service quotas, balances, and usage.",
   "main": "src/main/main.js",
-  "author": "Codex Quota Widget Contributors",
+  "author": "AI Quota Monitor Contributors",
   "license": "MIT",
   "private": true,
   "scripts": {
@@ -13,8 +13,8 @@
     "build:dir": "set CSC_IDENTITY_AUTO_DISCOVERY=false&& electron-builder --dir"
   },
   "build": {
-    "appId": "cn.codex.quota.widget",
-    "productName": "Codex Quota Widget",
+    "appId": "com.ai.quota.monitor",
+    "productName": "AI Quota Monitor",
     "directories": {
       "output": "dist"
     },
@@ -37,7 +37,7 @@
       ]
     },
     "portable": {
-      "artifactName": "Codex-Quota-Widget-1.0-win-x64.exe"
+      "artifactName": "AIQuotaMonitor.exe"
     }
   },
   "devDependencies": {
