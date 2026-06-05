@@ -1,0 +1,47 @@
+{
+  "name": "codex-led-widget",
+  "version": "1.0.0",
+  "description": "Windows desktop LED widget for showing local Codex usage quota.",
+  "main": "src/main/main.js",
+  "author": "Codex Quota Widget Contributors",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "dev": "electron .",
+    "start": "electron .",
+    "build": "set CSC_IDENTITY_AUTO_DISCOVERY=false&& electron-builder --win portable",
+    "build:dir": "set CSC_IDENTITY_AUTO_DISCOVERY=false&& electron-builder --dir"
+  },
+  "build": {
+    "appId": "cn.codex.quota.widget",
+    "productName": "Codex Quota Widget",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "assets/icon.ico",
+      "assets/icon.png",
+      "package.json"
+    ],
+    "win": {
+      "icon": "assets/icon.ico",
+      "signAndEditExecutable": false,
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "portable": {
+      "artifactName": "Codex-Quota-Widget-1.0-win-x64.exe"
+    }
+  },
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^24.13.3"
+  }
+}
