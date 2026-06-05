@@ -27,7 +27,7 @@ const I18N = {
     expiresDays:     "{n}天后 {t}到期",
   },
   en: {
-    title:           "Codex Quota",
+    title:           "AI Quota",
     loading:         "Loading",
     remaining:       "Remaining",
     labelPrimary:    "5-hour",
