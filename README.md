@@ -315,7 +315,7 @@ This project is based on [xicunwus2025-sys/ai-quota-monitor](https://github.com/
 ---
 ## 🤝 Contributing
 Issues and pull requests are welcome.
-If you find a bug, have a feature request, or want to improve the UI, feel free to open an issue.
+If you find a bug, have a feature request, or want to improve the UI, feel free to open an issue
 ---
 ## 📄 License
 MIT License
