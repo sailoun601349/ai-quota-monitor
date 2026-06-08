@@ -82,9 +82,9 @@ set DEEPSEEK_API_KEY=sk-your-key-here
 ## 🔴 额度颜色说明
 | 颜色 | 含义 |
 |---|---|
-| 🟢 绿色 | 剩余额度大于等于 10% |
-| 🟡 黄色 | 剩余额度小于 10%，但大于 0 |
-| 🔴 红色 | 剩余额度为 0 |
+| 🟢 绿色 | 剩余额度大于 30% |
+| 🟡 黄色 | 剩余额度 10%~30% |
+| 🔴 红色 | 剩余额度小于等于 10% |
 额度状态会根据本机可读取到的 Codex 使用数据进行计算。
 ---
 ## 🔐 隐私说明
@@ -232,9 +232,9 @@ Current version: `v2.0`
 ## 🔴 Quota Status
 | LED Color | Meaning                                  |
 | --------- | ---------------------------------------- |
-| 🟢 Green  | Remaining quota is 10% or higher         |
-| 🟡 Yellow | Remaining quota is below 10% but above 0 |
-| 🔴 Red    | Remaining quota is 0                     |
+| 🟢 Green  | Remaining quota > 30%                    |
+| 🟡 Yellow | Remaining quota 10%~30%                  |
+| 🔴 Red    | Remaining quota ≤ 10%                    |
 The remaining quota is calculated from Codex usage data available on your local machine.
 ---
 ## 🔐 Privacy

@@ -108,9 +108,9 @@ function setTrafficLight(color) {
 
 function setPoolsColor(remPct) {
   let color;
-  if (remPct >= 10) {
+  if (remPct > 30) {
     color = "green";
-  } else if (remPct > 0) {
+  } else if (remPct > 10) {
     color = "yellow";
   } else {
     color = "red";
