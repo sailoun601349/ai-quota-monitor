@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Quota Monitor</title>
+    <title>AIQuotaMonitor</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body data-state="loading">
@@ -59,6 +59,13 @@
           </div>
         </div>
 
+        <div class="cylinder-7day" id="cylinder7day">
+          <div class="cylinder-7day-fill" id="cylinder7dayFill"></div>
+          <div class="cylinder-7day-copy">
+            <span id="cylinder7dayPct">--%</span>
+          </div>
+        </div>
+
         <div class="quota-panel">
           <div class="quota-card primary">
             <div class="quota-card-info">
@@ -75,7 +82,7 @@
             <strong id="secondaryText">--</strong>
           </div>
           <div class="quota-card slim">
-            <span id="planLabel">计划</span>
+            <span id="planLabel">订阅方式</span>
             <strong id="planText">--</strong>
           </div>
         </div>
@@ -84,11 +91,6 @@
       <hr class="divider" />
 
       <footer class="deepseek-row">
-        <button id="dsRefreshBtn" class="ds-refresh-btn" title="刷新 DeepSeek 余额" aria-label="刷新 DeepSeek 余额">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M20 12a8 8 0 0 1-13.7 5.7M4 12A8 8 0 0 1 17.7 6.3M17 3v4h-4M7 21v-4h4" />
-          </svg>
-        </button>
         <span id="deepseekText">DeepSeek --</span>
         <span id="deepseekSpend" class="deepseek-spend">今日消耗 --</span>
       </footer>

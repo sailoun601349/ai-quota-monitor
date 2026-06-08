@@ -5,12 +5,12 @@
 // ---- i18n ---- //
 const I18N = {
   zh: {
-    title:           "Codex 额度",
+    title:           "AI额度监控",
     loading:         "读取中",
     remaining:       "剩余",
     labelPrimary:    "5小时",
     labelSecondary:  "7天",
-    labelPlan:       "计划",
+    labelPlan:       "订阅方式",
     statusReady:     "额度已更新",
     statusError:     "获取额度失败",
     btnPinOn:        "取消置顶",
@@ -21,20 +21,23 @@ const I18N = {
     quitTooltip:     "退出",
     // reset / expiry time
     resetting:       "重置中",
-    inMin:           "{n}分钟后到期",
-    expiresAt:       "到期 {t}",
-    expiresTomorrow: "明天 {t}到期",
-    expiresDays:     "{n}天后 {t}到期",
+    inMin:           "{n}分钟到期",
+    expiresAt:       "{t}到期",
+    expiresTomorrow: "明天到期",
+    expiresDays:     "{n}天后到期",
+    // deepseek
+    dsBalance:       "DeepSeek 剩余额度 {b} [{c}]",
+    dsSpend:         "今日消耗 {s}",
   },
   en: {
-    title:           "AI Quota",
+    title:           "AIQuotaMonitor",
     loading:         "Loading",
     remaining:       "Remaining",
     labelPrimary:    "5-hour",
     labelSecondary:  "7-day",
-    labelPlan:       "Plan",
+    labelPlan:       "Subscription",
     statusReady:     "Quota updated",
-    statusError:     "Failed to fetch quota",
+    statusError:     "Connection failed",
     btnPinOn:        "Unpin",
     btnPinOff:       "Pin",
     homePlan:        "Free",
@@ -44,12 +47,15 @@ const I18N = {
     refreshTooltip:  "Refresh",
     hideTooltip:     "Hide",
     quitTooltip:     "Quit",
-    // reset / expiry time
+    // reset / expiry time (without time — matched to zh format)
     resetting:       "Resetting…",
-    inMin:           "{n} min left",
-    expiresAt:       "Expires {t}",
-    expiresTomorrow: "Tomorrow {t}",
-    expiresDays:     "{n}d {t}",
+    inMin:           "{n} min",
+    expiresAt:       "{t}",
+    expiresTomorrow: "Tomorrow",
+    expiresDays:     "{n}d",
+    // deepseek
+    dsBalance:       "DeepSeek {b} [{c}]",
+    dsSpend:         "Today {s}",
   },
 };
 
@@ -83,6 +89,9 @@ const dom = {
   planText:       $("planText"),
   deepseekText:   $("deepseekText"),
   deepseekSpend:  $("deepseekSpend"),
+  cylinder7day:   $("cylinder7day"),
+  cylinder7dayFill: $("cylinder7dayFill"),
+  cylinder7dayPct: $("cylinder7dayPct"),
 };
 
 // ---- State ---- //
@@ -95,14 +104,25 @@ function setBodyState(state) {
 
 function setTrafficLight(color) {
   dom.trafficLight.className = "traffic-light " + color;
-  // update liquid fill colour
+}
+
+function setPoolsColor(remPct) {
+  let color;
+  if (remPct >= 10) {
+    color = "green";
+  } else if (remPct > 0) {
+    color = "yellow";
+  } else {
+    color = "red";
+  }
   dom.liquidFill.className = "liquid-fill " + color;
+  dom.cylinder7dayFill.className = "cylinder-7day-fill " + color;
 }
 
 // ---- Apply Language ---- //
 function applyLanguage() {
   dom.brandName.textContent      = getText("title");
-  dom.stateText.textContent      = getText("loading");
+  dom.stateText.textContent      = "";
   dom.primaryLabel.textContent   = getText("labelPrimary");
   dom.secondaryLabel.textContent = getText("labelSecondary");
   dom.planLabel.textContent      = getText("labelPlan");
@@ -115,11 +135,12 @@ function applyLanguage() {
   dom.minimizeBtn.title = getText("hideTooltip");
   dom.closeBtn.title    = getText("quitTooltip");
 
-  // Update quota cards if data exists
-  const data = dom.body.dataset;
-  if (data.remainingPercent !== undefined) {
-    applyQuotaCards(data);
+  // Update quota cards using cached full data
+  if (window._quotaData) {
+    applyQuotaCards(window._quotaData);
   }
+  // Update DeepSeek text
+  updateDeepSeekUI();
 }
 
 // ---- Toggle Language ---- //
@@ -138,8 +159,8 @@ function togglePin() {
 // ---- Refresh ---- //
 async function fetchQuota() {
   setBodyState("loading");
-  setTrafficLight("loading");
-  dom.stateText.textContent    = getText("loading");
+  setTrafficLight("yellow");
+  dom.stateText.textContent    = "";
 
   let data;
   try {
@@ -148,12 +169,16 @@ async function fetchQuota() {
     console.error("fetchQuota error:", err);
     setBodyState("error");
     setTrafficLight("red");
-      dom.stateText.textContent  = getText("statusError");
+    dom.stateText.textContent  = "";
     dom.remaining.textContent  = "--%";
     dom.primaryText.textContent   = "--";
     dom.secondaryText.textContent = "--";
     dom.planText.textContent      = "--";
     dom.liquidFill.style.height   = "0%";
+    dom.liquidFill.className = "liquid-fill";
+    dom.cylinder7dayFill.style.height = "0%";
+    dom.cylinder7dayFill.className = "cylinder-7day-fill";
+    dom.cylinder7dayPct.textContent   = "--";
     return;
   }
 
@@ -165,16 +190,8 @@ async function fetchQuota() {
   const remPct = data.remainingPercent ?? 0;
   const usedPct = data.usedPercent ?? (100 - remPct);
 
-  // --- Update traffic light --- //
-  let ledColor;
-  if (remPct >= 10) {
-    ledColor = "green";
-  } else if (remPct > 0) {
-    ledColor = "yellow";
-  } else {
-    ledColor = "red";
-  }
-  setTrafficLight(ledColor);
+  setTrafficLight("green");
+  setPoolsColor(remPct);
 
   // --- Update liquid fill --- //
   dom.liquidFill.style.height = remPct + "%";
@@ -188,7 +205,9 @@ async function fetchQuota() {
 
   // --- Status --- //
   setBodyState("ready");
-  dom.stateText.textContent  = getText("statusReady");
+  dom.stateText.textContent  = "";
+  // Also refresh DeepSeek balance after Codex update
+  fetchDeepSeekBalance();
 }
 
 // ---- DeepSeek Balance ---- //
@@ -231,20 +250,27 @@ async function fetchDeepSeekBalance() {
       const bal = Number(result.balance);
       const currency = result.currency || "CNY";
       const spent = await calcTodaySpend(bal);
-
-      dom.deepseekText.textContent =
-        "DeepSeek 剩余额度 " + bal.toFixed(2) + " [" + currency + "]";
-      dom.deepseekSpend.textContent =
-        "今日消耗 " + spent.toFixed(2);
+      window._dsData = { balance: bal, currency, spend: spent };
+      updateDeepSeekUI();
     } else {
       dom.deepseekText.textContent = "DeepSeek --";
-      dom.deepseekSpend.textContent = "今日消耗 --";
+      dom.deepseekSpend.textContent = currentLang === "zh" ? "今日消耗 --" : "Today --";
     }
   } catch (err) {
     console.error("DeepSeek balance error:", err);
     dom.deepseekText.textContent = "DeepSeek --";
-    dom.deepseekSpend.textContent = "今日消耗 --";
+    dom.deepseekSpend.textContent = currentLang === "zh" ? "今日消耗 --" : "Today --";
   }
+}
+
+function updateDeepSeekUI() {
+  const d = window._dsData;
+  if (!d) return;
+  dom.deepseekText.textContent = getText("dsBalance")
+    .replace("{b}", d.balance.toFixed(2))
+    .replace("{c}", d.currency || "CNY");
+  dom.deepseekSpend.textContent = getText("dsSpend")
+    .replace("{s}", d.spend.toFixed(2));
 }
 
 // ---- Format reset/expiry time ---- //
@@ -271,20 +297,16 @@ function formatResetTime(isoString) {
       return getText("expiresAt").replace("{t}", `${hh}:${mm}`);
     }
 
-    // tomorrow: show "明天 HH:mm"
+    // tomorrow: show "明天到期"
     const tomorrow = new Date(now);
     tomorrow.setDate(tomorrow.getDate() + 1);
     if (d.toDateString() === tomorrow.toDateString()) {
-      const hh = String(d.getHours()).padStart(2, "0");
-      const mm = String(d.getMinutes()).padStart(2, "0");
-      return getText("expiresTomorrow").replace("{t}", `${hh}:${mm}`);
+      return getText("expiresTomorrow");
     }
 
-    // future days: show "N天 HH:mm"
+    // future days: show "N天后到期"
     const diffDays = Math.floor(diffMs / 86400000);
-    const hh = String(d.getHours()).padStart(2, "0");
-    const mm = String(d.getMinutes()).padStart(2, "0");
-    return getText("expiresDays").replace("{n}", diffDays).replace("{t}", `${hh}:${mm}`);
+    return getText("expiresDays").replace("{n}", diffDays);
   } catch {
     return "";
   }
@@ -298,9 +320,8 @@ function applyQuotaCards(data) {
   const secondary = data.secondary;
 
   if (primary) {
-    const used = primary.usedPercent != null ? primary.usedPercent + "%" : "--";
     const rem  = primary.remainingPercent != null ? primary.remainingPercent + "%" : "--";
-    dom.primaryText.textContent = `${used} / ${rem}`;
+    dom.primaryText.textContent = rem;
     dom.primaryReset.textContent = formatResetTime(primary.resetsAt);
   } else {
     dom.primaryText.textContent = "--";
@@ -308,13 +329,18 @@ function applyQuotaCards(data) {
   }
 
   if (secondary) {
-    const used = secondary.usedPercent != null ? secondary.usedPercent + "%" : "--";
-    const rem  = secondary.remainingPercent != null ? secondary.remainingPercent + "%" : "--";
-    dom.secondaryText.textContent = `${used} / ${rem}`;
+    const remPct = secondary.remainingPercent ?? 0;
+    const rem    = remPct + "%";
+    dom.secondaryText.textContent = rem;
     dom.secondaryReset.textContent = formatResetTime(secondary.resetsAt);
+    // Update cylinder
+    dom.cylinder7dayFill.style.height = remPct + "%";
+    dom.cylinder7dayPct.textContent   = rem;
   } else {
     dom.secondaryText.textContent = "--";
     dom.secondaryReset.textContent = "";
+    dom.cylinder7dayFill.style.height = "0%";
+    dom.cylinder7dayPct.textContent   = "--";
   }
 
   // Plan type
@@ -351,7 +377,6 @@ async function init() {
   dom.langBtn.addEventListener("click", toggleLang);
   dom.pinBtn.addEventListener("click", togglePin);
   dom.refreshBtn.addEventListener("click", fetchQuota);
-  $("dsRefreshBtn").addEventListener("click", fetchDeepSeekBalance);
   dom.minimizeBtn.addEventListener("click", () => window.codexQuota.minimize());
   dom.closeBtn.addEventListener("click", () => window.codexQuota.close());
 
@@ -368,13 +393,11 @@ async function init() {
     dom.pinBtn.ariaLabel  = dom.pinBtn.title;
   });
 
-  // --- Initial fetch --- //
+  // --- Initial fetch (also triggers DeepSeek after Codex data loads) --- //
   fetchQuota();
-  fetchDeepSeekBalance();
 
-  // Auto-refresh every 5 minutes
+  // Auto-refresh every 5 minutes (also refreshes DeepSeek)
   setInterval(fetchQuota, 5 * 60 * 1000);
-  setInterval(fetchDeepSeekBalance, 10 * 60 * 1000);
 }
 
 // ---- Boot ---- //

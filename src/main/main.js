@@ -28,9 +28,9 @@ let isAlwaysOnTop = true;
 function createWindow() {
   const iconPath = path.join(__dirname, "../../assets/icon.ico");
   mainWindow = new BrowserWindow({
-    width: 340,
+    width: 310,
     height: 155,
-    minWidth: 340,
+    minWidth: 310,
     minHeight: 155,
     icon: iconPath,
     frame: false,
