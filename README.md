@@ -51,13 +51,6 @@ AI Quota Monitor 是一个 Windows 桌面悬浮小组件，用于显示本机 Co
 <p align="center">
   <img src="assets/中文截图.png" width="280" />
   <img src="assets/英文截图.png" width="280" />
-  
-</p>
-<p align="center">
-  
-  
-</p>
----
 ## 🚀 下载
 请前往 **Releases** 页面下载最新版 Windows `.exe` 文件：
 👉 [前往 Releases 下载](https://github.com/sailoun601349/ai-quota-monitor/releases)
@@ -172,19 +165,6 @@ ai-quota-monitor/
 * [ ] 增加手动刷新按钮（已完成 ✅）
 * [ ] 优化 Codex 未登录时的提示
 ---
-## Credits
-本项目基于 [xicunwus2025-sys/ai-quota-monitor](https://github.com/xicunwus2025-sys/ai-quota-monitor) 改进和扩展。
-### 新增功能
-- DeepSeek 余额实时监控（剩余额度 + 今日消耗）
-- 专属应用图标
-- 系统托盘独立运行（不占任务栏）
-- 液态玻璃质感界面优化
-- 到期时间智能显示
-- 窗口拖拽支持
-### 原作者
-- 原始项目：[@xicunwus2025-sys](https://github.com/xicunwus2025-sys)
-- 原始仓库：[ai-quota-monitor](https://github.com/xicunwus2025-sys/ai-quota-monitor)
----
 ## 🤝 参与贡献
 欢迎提交 Issue 和 Pull Request。
 如果你发现 Bug、有功能建议，或者想改进界面，可以直接打开一个 Issue。
@@ -230,16 +210,10 @@ It uses a transparent liquid-glass style interface and a simple red / yellow / g
 <p align="center">
   <img src="assets/中文截图.png" width="280" />
   <img src="assets/英文截图.png" width="280" />
-  
-</p>
-<p align="center">
-  
-  
-</p>
----
 ## 🚀 Download
 Download the latest Windows `.exe` from the **Releases** page:
 👉 [Download from Releases](https://github.com/sailoun601349/ai-quota-monitor/releases)
+
 Current version: `v2.0`
 ---
 ## 🖥️ Requirements
