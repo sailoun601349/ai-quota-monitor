@@ -96,6 +96,7 @@ const dom = {
 
 // ---- State ---- //
 let isAlwaysOnTop = true;
+let _refreshing = false;
 
 // ---- Helpers ---- //
 function setBodyState(state) {
@@ -158,56 +159,64 @@ function togglePin() {
 
 // ---- Refresh ---- //
 async function fetchQuota() {
+  if (_refreshing) return;
+  _refreshing = true;
+
   setBodyState("loading");
   setTrafficLight("yellow");
-  dom.stateText.textContent    = "";
+  dom.stateText.textContent = "";
 
-  let data;
-  try {
-    data = await window.codexQuota.getQuota();
-  } catch (err) {
-    console.error("fetchQuota error:", err);
+  // Launch Codex and DeepSeek in parallel — each handles its own success/failure
+  const [codexSettled] = await Promise.allSettled([
+    (async () => {
+      const data = await window.codexQuota.getQuota();
+
+      // Store data for language switch
+      dom.body.dataset.remainingPercent = data.remainingPercent;
+      dom.body.dataset.planType = data.planType || "unknown";
+
+      // Calculate driving values
+      const remPct = data.remainingPercent ?? 0;
+
+      setTrafficLight("green");
+      setPoolsColor(remPct);
+
+      // --- Update liquid fill --- //
+      dom.liquidFill.style.height = remPct + "%";
+
+      // --- Update meter text --- //
+      dom.remaining.textContent = remPct + "%";
+
+      // --- Update quota cards --- //
+      window._quotaData = data;
+      applyQuotaCards(data);
+
+      // --- Status --- //
+      setBodyState("ready");
+      dom.stateText.textContent = "";
+    })(),
+    fetchDeepSeekBalance()
+  ]);
+
+  // Handle Codex failure independently (DeepSeek has its own error handling)
+  if (codexSettled.status === "rejected") {
+    console.error("fetchQuota error:", codexSettled.reason);
     setBodyState("error");
     setTrafficLight("red");
-    dom.stateText.textContent  = "";
-    dom.remaining.textContent  = "--%";
-    dom.primaryText.textContent   = "--";
+    dom.stateText.textContent = "";
+    dom.remaining.textContent = "--%";
+    dom.primaryText.textContent = "--";
     dom.secondaryText.textContent = "--";
-    dom.planText.textContent      = "--";
-    dom.liquidFill.style.height   = "0%";
+    dom.planText.textContent = "--";
+    dom.liquidFill.style.height = "0%";
     dom.liquidFill.className = "liquid-fill";
     dom.cylinder7dayFill.style.height = "0%";
     dom.cylinder7dayFill.className = "cylinder-7day-fill";
-    dom.cylinder7dayPct.textContent   = "--";
-    return;
+    dom.cylinder7dayPct.textContent = "--";
+    window._quotaData = null;
   }
 
-  // Store data for language switch
-  dom.body.dataset.remainingPercent = data.remainingPercent;
-  dom.body.dataset.planType = data.planType || "unknown";
-
-  // Calculate driving values
-  const remPct = data.remainingPercent ?? 0;
-  const usedPct = data.usedPercent ?? (100 - remPct);
-
-  setTrafficLight("green");
-  setPoolsColor(remPct);
-
-  // --- Update liquid fill --- //
-  dom.liquidFill.style.height = remPct + "%";
-
-  // --- Update meter text --- //
-  dom.remaining.textContent = remPct + "%";
-
-  // --- Update quota cards --- //
-  window._quotaData = data;
-  applyQuotaCards(data);
-
-  // --- Status --- //
-  setBodyState("ready");
-  dom.stateText.textContent  = "";
-  // Also refresh DeepSeek balance after Codex update
-  fetchDeepSeekBalance();
+  _refreshing = false;
 }
 
 // ---- DeepSeek Balance ---- //
@@ -252,14 +261,19 @@ async function fetchDeepSeekBalance() {
       const spent = await calcTodaySpend(bal);
       window._dsData = { balance: bal, currency, spend: spent };
       updateDeepSeekUI();
-    } else {
+    } else if (!window._dsData) {
+      // API returned but no balance data & we've never had it — show "--"
       dom.deepseekText.textContent = "DeepSeek --";
       dom.deepseekSpend.textContent = currentLang === "zh" ? "今日消耗 --" : "Today --";
     }
+    // else: no data but we have old data — keep old values silently
   } catch (err) {
     console.error("DeepSeek balance error:", err);
-    dom.deepseekText.textContent = "DeepSeek --";
-    dom.deepseekSpend.textContent = currentLang === "zh" ? "今日消耗 --" : "Today --";
+    if (!window._dsData) {
+      dom.deepseekText.textContent = "DeepSeek --";
+      dom.deepseekSpend.textContent = currentLang === "zh" ? "今日消耗 --" : "Today --";
+    }
+    // else: keep old values silently
   }
 }
 
@@ -393,10 +407,10 @@ async function init() {
     dom.pinBtn.ariaLabel  = dom.pinBtn.title;
   });
 
-  // --- Initial fetch (also triggers DeepSeek after Codex data loads) --- //
+  // --- Initial fetch (Codex + DeepSeek run in parallel) --- //
   fetchQuota();
 
-  // Auto-refresh every 5 minutes (also refreshes DeepSeek)
+  // Auto-refresh every 5 minutes
   setInterval(fetchQuota, 5 * 60 * 1000);
 }
 

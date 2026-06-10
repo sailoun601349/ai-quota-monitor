@@ -39,9 +39,9 @@ AI Quota Monitor 是一个 Windows 桌面悬浮小组件，用于显示本机 Co
   - 内置双语界面
   - 中英文用户都可以使用
 - 🔄 **自动刷新**
-  - Codex 额度每 5 分钟自动刷新
-  - DeepSeek 余额每 10 分钟自动刷新
-  - 支持手动单独刷新
+  - Codex 额度与 DeepSeek 余额每 5 分钟自动并行刷新
+  - 支持手动刷新
+  - Codex 与 DeepSeek **独立刷新**：即使 Codex 查询失败，DeepSeek 余额仍能正常显示
 - 🔐 **隐私友好**
   - 使用本机已有的 Codex 登录状态
   - 不读取、不保存、不上传、不显示认证 Token
@@ -54,7 +54,7 @@ AI Quota Monitor 是一个 Windows 桌面悬浮小组件，用于显示本机 Co
 ## 🚀 下载
 请前往 **Releases** 页面下载最新版 Windows `.exe` 文件：
 👉 [前往 Releases 下载](https://github.com/sailoun601349/ai-quota-monitor/releases)
-当前版本：`v2.0`
+当前版本：`v2.1`
 ---
 ## 🖥️ 运行要求
 - Windows 10 / Windows 11
@@ -162,8 +162,14 @@ ai-quota-monitor/
 * [ ] 支持自定义刷新间隔
 * [ ] 增加开机自启动选项
 * [ ] 增加更多小组件主题
-* [ ] 增加手动刷新按钮（已完成 ✅）
 * [ ] 优化 Codex 未登录时的提示
+---
+## 📋 更新日志
+### v2.1 (2026-06-10)
+* ⚡ **并行刷新**：Codex 与 DeepSeek 额度改为并行独立请求，Codex 查询失败不再阻塞 DeepSeek 显示
+* 🔒 **刷新锁**：避免手动刷新与自动刷新请求叠加冲突
+* 💾 **失败保留旧值**：DeepSeek 查询失败时保留上次成功获取的余额数据，不再闪变为 "--"
+* 🐛 修复语言切换时 Codex 错误态下可能显示过期数据的问题
 ---
 ## 🤝 参与贡献
 欢迎提交 Issue 和 Pull Request。
@@ -198,9 +204,9 @@ It uses a transparent liquid-glass style interface and a simple red / yellow / g
   * Built-in language switch
   * Suitable for both Chinese and English users
 * 🔄 **Auto-refresh**
-  * Codex quota: every 5 minutes
-  * DeepSeek balance: every 10 minutes
-  * Manual refresh per service
+  * Codex quota and DeepSeek balance refresh in parallel every 5 minutes
+  * Manual refresh button
+  * **Independent fetching**: Codex failure won't block DeepSeek balance display
 * 🔐 **Privacy-friendly**
   * Uses your local Codex sign-in state
   * DeepSeek API key stays on your machine
@@ -214,7 +220,7 @@ It uses a transparent liquid-glass style interface and a simple red / yellow / g
 Download the latest Windows `.exe` from the **Releases** page:
 👉 [Download from Releases](https://github.com/sailoun601349/ai-quota-monitor/releases)
 
-Current version: `v2.0`
+Current version: `v2.1`
 ---
 ## 🖥️ Requirements
 * Windows 10 / Windows 11
@@ -309,6 +315,7 @@ This project is based on [xicunwus2025-sys/ai-quota-monitor](https://github.com/
 - Liquid glass UI refinements
 - Smart expiry time display
 - Window drag support
+- Parallel independent refresh (Codex failure won't block DeepSeek)
 ### Original Author
 - Original project: [@xicunwus2025-sys](https://github.com/xicunwus2025-sys)
 - Original repo: [ai-quota-monitor](https://github.com/xicunwus2025-sys/ai-quota-monitor)
