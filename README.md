@@ -46,6 +46,10 @@ AI Quota Monitor 是一个 Windows 桌面悬浮小组件，用于显示本机 Co
   - 使用本机已有的 Codex 登录状态
   - 不读取、不保存、不上传、不显示认证 Token
   - DeepSeek API Key 仅在本地使用
+- ⚙️ **设置面板**
+  - 托盘右键菜单 → **设置** 即可配置 DeepSeek API Key
+  - 密钥输入框支持显隐切换（小眼睛按钮）
+  - 保存后即时生效，无需重启
 ---
 ## 📸 截图预览
 <p align="center">
@@ -54,21 +58,29 @@ AI Quota Monitor 是一个 Windows 桌面悬浮小组件，用于显示本机 Co
 ## 🚀 下载
 请前往 **Releases** 页面下载最新版 Windows `.exe` 文件：
 👉 [前往 Releases 下载](https://github.com/sailoun601349/ai-quota-monitor/releases)
-当前版本：`v2.1`
+当前版本：`v2.2`
 ---
 ## 🖥️ 运行要求
 - Windows 10 / Windows 11
 - Codex 已安装并登录（用于 Codex 额度显示）
 - DeepSeek API Key（可选，仅 DeepSeek 余额功能需要）
 ---
-## 📦 DeepSeek 配置
-DeepSeek 余额功能默认内置了 API Key。如需使用自己的 Key，有两种方式：
-**方式一：环境变量（推荐）**
+## ⚙️ DeepSeek 配置
+DeepSeek 余额功能默认内置了 API Key。如需使用自己的 Key，有三种方式：
+
+**方式一：设置界面（推荐）**
+右键系统托盘图标 → **设置**，在弹出的窗口中粘贴你的 DeepSeek API Key，点击确认即可。
+
+**方式二：环境变量**
 ```bash
 set DEEPSEEK_API_KEY=sk-your-key-here
 ```
-**方式二：修改源码**
-编辑 `src/main/deepseek-service.js` 中的 `DEFAULT_KEY` 值。
+
+**方式三：修改源码**
+编辑 `src/main/deepseek-service.js` 中的内置默认值。
+
+> 优先级：环境变量 > 设置界面保存的 Key > 内置默认值
+
 > 注意：DeepSeek API Key 仅本地使用，不会被上传或泄露。
 ---
 ## 📦 使用方法
@@ -132,9 +144,11 @@ ai-quota-monitor/
 │  │  ├─ quota-service.js     # Codex 额度查询服务
 │  │  └─ deepseek-service.js  # DeepSeek 余额查询服务
 │  └─ renderer/
-│     ├─ index.html           # 界面 HTML
+│     ├─ index.html           # 主界面 HTML
 │     ├─ styles.css           # 液态玻璃样式
-│     └─ renderer.js          # 前端逻辑
+│     ├─ renderer.js          # 主界面逻辑
+│     ├─ settings.html        # 设置界面 HTML
+│     └─ settings.js          # 设置界面逻辑
 ├─ package.json       # 项目配置和打包脚本
 └─ README.md
 ```
@@ -165,6 +179,13 @@ ai-quota-monitor/
 * [ ] 优化 Codex 未登录时的提示
 ---
 ## 📋 更新日志
+### v2.2 (2026-06-11)
+* ⚙️ **设置面板**：托盘右键菜单新增 **设置** 按钮，可配置 DeepSeek API Key
+* 👁️ **密钥显隐切换**：设置面板密钥输入框右侧增加小眼睛按钮，点击可切换密钥显示/隐藏
+* 💾 **密钥持久化**：配置的密钥自动保存到本地配置文件，重启不丢失
+* 🔑 **三级密钥优先级**：环境变量 > 配置文件 > 内置默认值
+* 🔄 保存密钥后自动触发额度刷新，新 Key 即时生效
+
 ### v2.1 (2026-06-10)
 * ⚡ **并行刷新**：Codex 与 DeepSeek 额度改为并行独立请求，Codex 查询失败不再阻塞 DeepSeek 显示
 * 🔒 **刷新锁**：避免手动刷新与自动刷新请求叠加冲突
@@ -211,6 +232,10 @@ It uses a transparent liquid-glass style interface and a simple red / yellow / g
   * Uses your local Codex sign-in state
   * DeepSeek API key stays on your machine
   * No data uploaded
+* ⚙️ **Settings panel**
+  * Right-click tray icon → **设置** (Settings) to configure DeepSeek API Key
+  * Eye toggle button to show/hide the key
+  * Takes effect immediately after saving
 ---
 ## 📸 Screenshots
 <p align="center">
@@ -220,12 +245,17 @@ It uses a transparent liquid-glass style interface and a simple red / yellow / g
 Download the latest Windows `.exe` from the **Releases** page:
 👉 [Download from Releases](https://github.com/sailoun601349/ai-quota-monitor/releases)
 
-Current version: `v2.1`
+Current version: `v2.2`
 ---
 ## 🖥️ Requirements
 * Windows 10 / Windows 11
 * Codex installed and signed in on your computer
 * DeepSeek API Key (optional, for balance feature only)
+
+## ⚙️ DeepSeek Configuration
+Right-click tray icon → **设置** (Settings) to enter your DeepSeek API Key. The key is saved locally and takes effect immediately.
+
+Priority: Environment variable `DEEPSEEK_API_KEY` > Settings UI > Built-in default.
 ---
 ## 📦 How to Use
 1. Go to the [Releases](https://github.com/sailoun601349/ai-quota-monitor/releases) page.
@@ -286,9 +316,11 @@ ai-quota-monitor/
 │  │  ├─ quota-service.js     # Codex quota service
 │  │  └─ deepseek-service.js  # DeepSeek balance service
 │  └─ renderer/
-│     ├─ index.html           # UI HTML
+│     ├─ index.html           # Main UI HTML
 │     ├─ styles.css           # Liquid glass styles
-│     └─ renderer.js          # UI logic
+│     ├─ renderer.js          # Main UI logic
+│     ├─ settings.html        # Settings UI HTML
+│     └─ settings.js          # Settings UI logic
 ├─ package.json       # Project config and build scripts
 └─ README.md
 ```
@@ -310,6 +342,7 @@ No. The widget is intended to read and display local quota status only.
 This project is based on [xicunwus2025-sys/ai-quota-monitor](https://github.com/xicunwus2025-sys/ai-quota-monitor) with enhancements.
 ### Additional Features
 - DeepSeek balance monitoring (balance + daily spend)
+- GUI settings panel for DeepSeek API Key configuration
 - Custom application icon
 - System tray only mode (no taskbar entry)
 - Liquid glass UI refinements

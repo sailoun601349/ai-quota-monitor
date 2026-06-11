@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>设置</title>
+    <style>
+      /* ---- Reset & Base ---- */
+      *, *::before, *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html, body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+          "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        user-select: none;
+        background: transparent;
+      }
+
+      /* ---- Dialog Container ---- */
+      .dialog {
+        position: relative;
+        width: 380px;
+        height: 200px;
+        background: rgba(20, 22, 30, 0.72);
+        backdrop-filter: blur(24px) saturate(1.4);
+        -webkit-backdrop-filter: blur(24px) saturate(1.4);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        box-shadow:
+          0 8px 40px rgba(0, 0, 0, 0.5),
+          inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        display: flex;
+        flex-direction: column;
+        -webkit-app-region: drag;
+      }
+
+      /* ---- Title Bar ---- */
+      .titlebar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 14px 8px 14px;
+      }
+      .titlebar .title {
+        font-size: 14px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.9);
+        letter-spacing: 0.3px;
+      }
+      .titlebar .close-btn {
+        -webkit-app-region: no-drag;
+        background: none;
+        border: none;
+        color: rgba(255, 255, 255, 0.45);
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.2s, background 0.2s;
+      }
+      .titlebar .close-btn:hover {
+        color: #f87171;
+        background: rgba(248, 113, 113, 0.12);
+      }
+      .titlebar .close-btn svg {
+        width: 16px;
+        height: 16px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      /* ---- Divider ---- */
+      .divider {
+        margin: 0 14px;
+        border: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      /* ---- Form Body ---- */
+      .form-body {
+        -webkit-app-region: no-drag;
+        padding: 14px 14px 6px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        flex: 1;
+      }
+      .form-body label {
+        font-size: 12px;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.7);
+        letter-spacing: 0.2px;
+      }
+
+      /* ---- Input Row ---- */
+      .input-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        position: relative;
+      }
+      .input-row input {
+        flex: 1;
+        height: 34px;
+        padding: 0 10px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(0, 0, 0, 0.3);
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 13px;
+        font-family: "Consolas", "Courier New", monospace;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+      }
+      .input-row input:focus {
+        border-color: rgba(72, 160, 255, 0.5);
+        box-shadow: 0 0 0 2px rgba(72, 160, 255, 0.15);
+      }
+      .input-row input::placeholder {
+        color: rgba(255, 255, 255, 0.25);
+      }
+
+      /* ---- Eye Toggle ---- */
+      .eye-btn {
+        flex-shrink: 0;
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(0, 0, 0, 0.25);
+        color: rgba(255, 255, 255, 0.5);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.2s, background 0.2s, border-color 0.2s;
+      }
+      .eye-btn:hover {
+        color: rgba(255, 255, 255, 0.85);
+        background: rgba(72, 160, 255, 0.12);
+        border-color: rgba(72, 160, 255, 0.3);
+      }
+      .eye-btn svg {
+        width: 18px;
+        height: 18px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      /* ---- Action Buttons ---- */
+      .actions {
+        -webkit-app-region: no-drag;
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        padding: 6px 14px 14px;
+      }
+      .actions button {
+        height: 30px;
+        padding: 0 16px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+      }
+      .btn-cancel {
+        background: rgba(255, 255, 255, 0.08);
+        color: rgba(255, 255, 255, 0.7);
+      }
+      .btn-cancel:hover {
+        background: rgba(255, 255, 255, 0.14);
+        color: rgba(255, 255, 255, 0.9);
+      }
+      .btn-confirm {
+        background: rgba(72, 160, 255, 0.7);
+        color: #fff;
+        letter-spacing: 0.3px;
+      }
+      .btn-confirm:hover {
+        background: rgba(72, 160, 255, 0.9);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dialog">
+      <!-- Title Bar -->
+      <div class="titlebar">
+        <span class="title">设置</span>
+        <button class="close-btn" id="closeBtn" title="关闭" aria-label="关闭">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- Form -->
+      <div class="form-body">
+        <label for="apiKeyInput">DeepSeek API Key</label>
+        <div class="input-row">
+          <input
+            id="apiKeyInput"
+            type="password"
+            placeholder="sk-..."
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button class="eye-btn" id="eyeBtn" title="显示/隐藏密钥" aria-label="显示/隐藏密钥">
+            <!-- Eye-open icon (visible state) -->
+            <svg id="eyeOpen" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            <!-- Eye-off icon (hidden state) -->
+            <svg id="eyeOff" viewBox="0 0 24 24" aria-hidden="true" style="display:none">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+              <line x1="1" y1="1" x2="23" y2="23" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="actions">
+        <button class="btn-cancel" id="cancelBtn">取消</button>
+        <button class="btn-confirm" id="confirmBtn">确认</button>
+      </div>
+    </div>
+
+    <script src="./settings.js"></script>
+  </body>
+</html>

@@ -4,6 +4,20 @@ const fs = require("node:fs");
 const { getQuota } = require("./quota-service");
 const { getDeepSeekBalance } = require("./deepseek-service");
 
+// ---- Config file helpers (persists API keys etc.) ---- //
+function getConfigPath() {
+  return path.join(app.getPath("userData"), "config.json");
+}
+function readConfig() {
+  try {
+    const raw = fs.readFileSync(getConfigPath(), "utf8");
+    return JSON.parse(raw);
+  } catch (_) { return {}; }
+}
+function writeConfig(cfg) {
+  fs.writeFileSync(getConfigPath(), JSON.stringify(cfg, null, 2), "utf8");
+}
+
 // ---- Daily tracking storage (persists across restarts) ---- //
 function getDailyFilePath() {
   return path.join(app.getPath("userData"), "ds_daily.json");
@@ -22,6 +36,7 @@ function writeDailyData(data) {
 app.setPath("userData", path.join(app.getPath("appData"), ".ai-quota-monitor"));
 
 let mainWindow;
+let settingsWindow;
 let tray;
 let isAlwaysOnTop = true;
 
@@ -54,6 +69,40 @@ function createWindow() {
   });
 }
 
+function createSettingsWindow() {
+  if (settingsWindow) {
+    settingsWindow.show();
+    settingsWindow.focus();
+    return;
+  }
+
+  const iconPath = path.join(__dirname, "../../assets/icon.ico");
+  settingsWindow = new BrowserWindow({
+    width: 380,
+    height: 200,
+    icon: iconPath,
+    frame: false,
+    transparent: true,
+    resizable: false,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    backgroundColor: "#00000000",
+    parent: mainWindow,
+    modal: false,
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js"),
+      contextIsolation: true,
+      nodeIntegration: false
+    }
+  });
+
+  settingsWindow.loadFile(path.join(__dirname, "../renderer/settings.html"));
+
+  settingsWindow.on("closed", () => {
+    settingsWindow = null;
+  });
+}
+
 function placeWindowTopRight() {
   if (!mainWindow) return;
   const display = screen.getPrimaryDisplay();
@@ -82,6 +131,7 @@ function rebuildTrayMenu() {
     Menu.buildFromTemplate([
       { label: "显示/隐藏", click: toggleWindow },
       { label: "刷新额度", click: () => mainWindow?.webContents.send("quota:refresh") },
+      { label: "设置", click: () => openSettings() },
       {
         label: isAlwaysOnTop ? "取消置顶" : "置顶",
         click: () => setAlwaysOnTop(!isAlwaysOnTop)
@@ -112,18 +162,50 @@ function toggleWindow() {
   }
 }
 
+function openSettings() {
+  createSettingsWindow();
+}
+
 app.whenReady().then(() => {
   createWindow();
   createTray();
 
+  // ---- Quota & Balance ---- //
+  const userDataPath = app.getPath("userData");
   ipcMain.handle("quota:get", async () => getQuota());
-  ipcMain.handle("deepseek:balance", async () => getDeepSeekBalance());
+  ipcMain.handle("deepseek:balance", async () => getDeepSeekBalance(userDataPath));
+
+  // ---- Daily tracking ---- //
   ipcMain.handle("daily:get", () => readDailyData());
   ipcMain.handle("daily:set", (_event, data) => writeDailyData(data));
+
+  // ---- Window controls ---- //
   ipcMain.handle("window:minimize", () => mainWindow?.hide());
   ipcMain.handle("window:close", () => app.quit());
   ipcMain.handle("window:alwaysOnTop:get", () => isAlwaysOnTop);
   ipcMain.handle("window:alwaysOnTop:set", (_event, value) => setAlwaysOnTop(value));
+
+  // ---- Settings ---- //
+  ipcMain.handle("settings:getKey", () => {
+    const cfg = readConfig();
+    return cfg.deepseekKey || "";
+  });
+  ipcMain.handle("settings:setKey", (_event, key) => {
+    const cfg = readConfig();
+    cfg.deepseekKey = (key || "").trim();
+    writeConfig(cfg);
+    // Trigger a refresh so the new key takes effect
+    mainWindow?.webContents.send("quota:refresh");
+    return true;
+  });
+  ipcMain.handle("settings:close", () => {
+    if (settingsWindow) {
+      settingsWindow.close();
+      settingsWindow = null;
+    }
+  });
+
+  // ---- External ---- //
   ipcMain.handle("external:openCodex", () => {
     shell.openPath(path.join(process.env.LOCALAPPDATA || "", "OpenAI", "Codex", "bin", "codex.exe"));
   });

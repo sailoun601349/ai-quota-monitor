@@ -10,6 +10,10 @@ contextBridge.exposeInMainWorld("codexQuota", {
   getAlwaysOnTop: () => ipcRenderer.invoke("window:alwaysOnTop:get"),
   setAlwaysOnTop: (value) => ipcRenderer.invoke("window:alwaysOnTop:set", value),
   openCodex: () => ipcRenderer.invoke("external:openCodex"),
+  // Settings
+  getDeepSeekKey: () => ipcRenderer.invoke("settings:getKey"),
+  setDeepSeekKey: (key) => ipcRenderer.invoke("settings:setKey", key),
+  closeSettings: () => ipcRenderer.invoke("settings:close"),
   onRefresh: (callback) => {
     ipcRenderer.on("quota:refresh", callback);
   },

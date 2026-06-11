@@ -1,13 +1,35 @@
 const https = require("node:https");
+const path = require("node:path");
+const fs = require("node:fs");
 
 const API_URL = "api.deepseek.com";
 const API_PATH = "/user/balance";
 
-// Configurable: default key + env var override
-const DEFAULT_KEY = "sk-8801101afbc74bcd8a532674af958bba";
-const API_KEY = process.env.DEEPSEEK_API_KEY || DEFAULT_KEY;
+/**
+ * Read the DeepSeek API key.
+ * Priority: env DEEPSEEK_API_KEY > config file > built-in default
+ */
+function getAPIKey(userDataPath) {
+  // 1) Environment variable
+  if (process.env.DEEPSEEK_API_KEY) return process.env.DEEPSEEK_API_KEY;
 
-async function getDeepSeekBalance() {
+  // 2) Config file in userData
+  try {
+    const configPath = path.join(userDataPath, "config.json");
+    const raw = fs.readFileSync(configPath, "utf8");
+    const cfg = JSON.parse(raw);
+    if (cfg && cfg.deepseekKey && cfg.deepseekKey.trim()) {
+      return cfg.deepseekKey.trim();
+    }
+  } catch (_) { /* file doesn't exist or is invalid — fall through */ }
+
+  // 3) Built-in default
+  return "sk-8801101afbc74bcd8a532674af958bba";
+}
+
+async function getDeepSeekBalance(userDataPath) {
+  const API_KEY = getAPIKey(userDataPath);
+
   return new Promise((resolve, reject) => {
     const options = {
       hostname: API_URL,
