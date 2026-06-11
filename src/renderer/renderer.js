@@ -97,6 +97,23 @@ const dom = {
 // ---- State ---- //
 let isAlwaysOnTop = true;
 let _refreshing = false;
+let _regionVisibility = { codex: true, deepseek: true };
+
+// ---- Region Visibility ---- //
+function applyRegionVisibility(visibility) {
+  _regionVisibility = visibility;
+  dom.body.setAttribute("data-codex-visible", visibility.codex ? "true" : "false");
+  dom.body.setAttribute("data-deepseek-visible", visibility.deepseek ? "true" : "false");
+  // Report new height after CSS takes effect
+  requestAnimationFrame(() => reportHeight());
+}
+
+function reportHeight() {
+  const widget = document.querySelector(".widget");
+  if (!widget) return;
+  const h = widget.getBoundingClientRect().height;
+  window.codexQuota.setHeight(Math.ceil(h)).catch(() => {});
+}
 
 // ---- Helpers ---- //
 function setBodyState(state) {
@@ -166,55 +183,80 @@ async function fetchQuota() {
   setTrafficLight("yellow");
   dom.stateText.textContent = "";
 
-  // Launch Codex and DeepSeek in parallel — each handles its own success/failure
-  const [codexSettled] = await Promise.allSettled([
-    (async () => {
-      const data = await window.codexQuota.getQuota();
+  // Track success per visible region; hidden regions are implicitly "ok"
+  let codexOk = !_regionVisibility.codex;
+  let deepseekOk = !_regionVisibility.deepseek;
 
-      // Store data for language switch
-      dom.body.dataset.remainingPercent = data.remainingPercent;
-      dom.body.dataset.planType = data.planType || "unknown";
+  const tasks = [];
 
-      // Calculate driving values
-      const remPct = data.remainingPercent ?? 0;
+  // Codex — only fetch if visible
+  if (_regionVisibility.codex) {
+    tasks.push(
+      (async () => {
+        const data = await window.codexQuota.getQuota();
 
-      setTrafficLight("green");
-      setPoolsColor(remPct);
+        // Store data for language switch
+        dom.body.dataset.remainingPercent = data.remainingPercent;
+        dom.body.dataset.planType = data.planType || "unknown";
 
-      // --- Update liquid fill --- //
-      dom.liquidFill.style.height = remPct + "%";
+        const remPct = data.remainingPercent ?? 0;
+        setPoolsColor(remPct);
 
-      // --- Update meter text --- //
-      dom.remaining.textContent = remPct + "%";
+        // --- Update liquid fill --- //
+        dom.liquidFill.style.height = remPct + "%";
 
-      // --- Update quota cards --- //
-      window._quotaData = data;
-      applyQuotaCards(data);
+        // --- Update meter text --- //
+        dom.remaining.textContent = remPct + "%";
 
-      // --- Status --- //
-      setBodyState("ready");
-      dom.stateText.textContent = "";
-    })(),
-    fetchDeepSeekBalance()
-  ]);
+        // --- Update quota cards --- //
+        window._quotaData = data;
+        applyQuotaCards(data);
 
-  // Handle Codex failure independently (DeepSeek has its own error handling)
-  if (codexSettled.status === "rejected") {
-    console.error("fetchQuota error:", codexSettled.reason);
+        codexOk = true;
+      })().catch((err) => {
+        console.error("fetchQuota error:", err);
+        dom.remaining.textContent = "--%";
+        dom.primaryText.textContent = "--";
+        dom.secondaryText.textContent = "--";
+        dom.planText.textContent = "--";
+        dom.liquidFill.style.height = "0%";
+        dom.liquidFill.className = "liquid-fill";
+        dom.cylinder7dayFill.style.height = "0%";
+        dom.cylinder7dayFill.className = "cylinder-7day-fill";
+        dom.cylinder7dayPct.textContent = "--";
+        window._quotaData = null;
+        codexOk = false;
+      })
+    );
+  }
+
+  // DeepSeek — only fetch if visible
+  if (_regionVisibility.deepseek) {
+    tasks.push(
+      fetchDeepSeekBalance().then((ok) => { deepseekOk = ok; })
+    );
+  }
+
+  if (tasks.length === 0) {
+    // Nothing to fetch — all regions hidden
+    setBodyState("ready");
+    setTrafficLight("green");
+    dom.stateText.textContent = "";
+    _refreshing = false;
+    return;
+  }
+
+  await Promise.allSettled(tasks);
+
+  // Traffic light: green only if ALL visible regions succeeded
+  if (codexOk && deepseekOk) {
+    setBodyState("ready");
+    setTrafficLight("green");
+  } else {
     setBodyState("error");
     setTrafficLight("red");
-    dom.stateText.textContent = "";
-    dom.remaining.textContent = "--%";
-    dom.primaryText.textContent = "--";
-    dom.secondaryText.textContent = "--";
-    dom.planText.textContent = "--";
-    dom.liquidFill.style.height = "0%";
-    dom.liquidFill.className = "liquid-fill";
-    dom.cylinder7dayFill.style.height = "0%";
-    dom.cylinder7dayFill.className = "cylinder-7day-fill";
-    dom.cylinder7dayPct.textContent = "--";
-    window._quotaData = null;
   }
+  dom.stateText.textContent = "";
 
   _refreshing = false;
 }
@@ -261,12 +303,14 @@ async function fetchDeepSeekBalance() {
       const spent = await calcTodaySpend(bal);
       window._dsData = { balance: bal, currency, spend: spent };
       updateDeepSeekUI();
+      return true;
     } else if (!window._dsData) {
       // API returned but no balance data & we've never had it — show "--"
       dom.deepseekText.textContent = "DeepSeek --";
       dom.deepseekSpend.textContent = currentLang === "zh" ? "今日消耗 --" : "Today --";
     }
     // else: no data but we have old data — keep old values silently
+    return true; // no explicit error
   } catch (err) {
     console.error("DeepSeek balance error:", err);
     if (!window._dsData) {
@@ -274,6 +318,7 @@ async function fetchDeepSeekBalance() {
       dom.deepseekSpend.textContent = currentLang === "zh" ? "今日消耗 --" : "Today --";
     }
     // else: keep old values silently
+    return false;
   }
 }
 
@@ -406,6 +451,17 @@ async function init() {
     dom.pinBtn.title      = isAlwaysOnTop ? getText("btnPinOn") : getText("btnPinOff");
     dom.pinBtn.ariaLabel  = dom.pinBtn.title;
   });
+
+  // Listen for region visibility changes from main process
+  window.codexQuota.onRegionVisibilityChanged((visibility) => {
+    applyRegionVisibility(visibility);
+  });
+
+  // Apply initial region visibility BEFORE first fetch (must await)
+  try {
+    const visibility = await window.codexQuota.getRegionVisibility();
+    applyRegionVisibility(visibility);
+  } catch (_) { /* use defaults */ }
 
   // --- Initial fetch (Codex + DeepSeek run in parallel) --- //
   fetchQuota();

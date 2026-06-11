@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tray Menu</title>
+    <style>
+      *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 100%; height: 100%; overflow: hidden;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+          "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        user-select: none;
+        background: transparent;
+      }
+      .menu {
+        background: rgba(22, 24, 34, 0.88);
+        backdrop-filter: blur(20px) saturate(1.4);
+        -webkit-backdrop-filter: blur(20px) saturate(1.4);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
+        padding: 6px 4px;
+        display: flex;
+        flex-direction: column;
+        min-width: 124px;
+      }
+      .menu-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.88);
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+        white-space: nowrap;
+      }
+      .menu-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+      }
+      .menu-item:active {
+        background: rgba(255, 255, 255, 0.15);
+      }
+      .menu-section {
+        padding: 7px 12px 3px;
+        font-size: 12px;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.45);
+        letter-spacing: 0.4px;
+        cursor: default;
+      }
+      .menu-item.checkbox {
+        padding-left: 28px;
+        position: relative;
+      }
+      .menu-item .check-mark {
+        position: absolute;
+        left: 10px;
+        width: 14px;
+        text-align: center;
+        font-size: 12px;
+        color: rgba(72, 160, 255, 0.9);
+        visibility: hidden;
+      }
+      .menu-item.checkbox.checked .check-mark {
+        visibility: visible;
+      }
+      .menu-sep {
+        margin: 4px 10px;
+        border: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .menu-item.danger { color: rgba(255, 120, 120, 0.85); }
+      .menu-item.danger:hover { color: #f87171; background: rgba(248, 113, 113, 0.1); }
+      .menu-item.danger:active { background: rgba(248, 113, 113, 0.18); }
+    </style>
+  </head>
+  <body>
+    <div class="menu" id="menu">
+      <div class="menu-item" id="itemToggle" data-action="toggle-window">
+        <span>隐藏面板</span>
+      </div>
+      <div class="menu-item" id="itemPin" data-action="toggle-pin">
+        <span>取消置顶</span>
+      </div>
+      <div class="menu-item" id="itemRefresh" data-action="refresh">
+        <span>刷新额度</span>
+      </div>
+      <div class="menu-item" id="itemSettings" data-action="settings">
+        <span>设置密钥</span>
+      </div>
+      <div class="menu-section">显隐区域</div>
+      <div class="menu-item checkbox checked" id="itemCodex" data-action="toggle-codex">
+        <span class="check-mark">✓</span>
+        <span>Codex</span>
+      </div>
+      <div class="menu-item checkbox checked" id="itemDeepseek" data-action="toggle-deepseek">
+        <span class="check-mark">✓</span>
+        <span>DeepSeek</span>
+      </div>
+      <hr class="menu-sep" />
+      <div class="menu-item danger" id="itemQuit" data-action="quit">
+        <span>退出</span>
+      </div>
+    </div>
+    <script src="./traymenu.js"></script>
+  </body>
+</html>

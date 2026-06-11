@@ -47,9 +47,18 @@ AI Quota Monitor 是一个 Windows 桌面悬浮小组件，用于显示本机 Co
   - 不读取、不保存、不上传、不显示认证 Token
   - DeepSeek API Key 仅在本地使用
 - ⚙️ **设置面板**
-  - 托盘右键菜单 → **设置** 即可配置 DeepSeek API Key
+  - 托盘右键菜单 → **设置密钥** 即可配置 DeepSeek API Key
   - 密钥输入框支持显隐切换（小眼睛按钮）
   - 保存后即时生效，无需重启
+- 🧩 **区域显隐**
+  - 托盘右键菜单 → **显隐区域** → 勾选/取消 Codex、DeepSeek
+  - 隐藏的区域完全不显示，面板高度自适应收缩
+  - 隐藏区域自动跳过网络请求，减少无效调用
+  - 红绿灯仅根据**可见区域**的获取状态判定
+- 🎛️ **自定义托盘菜单**
+  - 毛玻璃风格 HTML 托盘菜单，与面板视觉统一
+  - 显隐区域 checkbox 点击后菜单不消失，可连续操作
+  - 「显示面板」/「隐藏面板」智能切换
 ---
 ## 📸 截图预览
 <p align="center">
@@ -58,7 +67,7 @@ AI Quota Monitor 是一个 Windows 桌面悬浮小组件，用于显示本机 Co
 ## 🚀 下载
 请前往 **Releases** 页面下载最新版 Windows `.exe` 文件：
 👉 [前往 Releases 下载](https://github.com/sailoun601349/ai-quota-monitor/releases)
-当前版本：`v2.2`
+当前版本：`v3.0`
 ---
 ## 🖥️ 运行要求
 - Windows 10 / Windows 11
@@ -69,7 +78,7 @@ AI Quota Monitor 是一个 Windows 桌面悬浮小组件，用于显示本机 Co
 DeepSeek 余额功能默认内置了 API Key。如需使用自己的 Key，有三种方式：
 
 **方式一：设置界面（推荐）**
-右键系统托盘图标 → **设置**，在弹出的窗口中粘贴你的 DeepSeek API Key，点击确认即可。
+右键系统托盘图标 → **设置密钥**，在弹出的窗口中粘贴你的 DeepSeek API Key，点击确认即可。
 
 **方式二：环境变量**
 ```bash
@@ -148,7 +157,9 @@ ai-quota-monitor/
 │     ├─ styles.css           # 液态玻璃样式
 │     ├─ renderer.js          # 主界面逻辑
 │     ├─ settings.html        # 设置界面 HTML
-│     └─ settings.js          # 设置界面逻辑
+│     ├─ settings.js          # 设置界面逻辑
+│     ├─ traymenu.html        # 托盘菜单 HTML
+│     └─ traymenu.js          # 托盘菜单逻辑
 ├─ package.json       # 项目配置和打包脚本
 └─ README.md
 ```
@@ -179,6 +190,15 @@ ai-quota-monitor/
 * [ ] 优化 Codex 未登录时的提示
 ---
 ## 📋 更新日志
+### v3.0 (2026-06-11)
+* 🧩 **区域显隐**：托盘右键 → 显隐区域 → 独立控制 Codex / DeepSeek 显示
+* 📐 **面板自适应**：隐藏区域后窗口高度自动收缩，最小可仅显示标题栏
+* ⚡ **按需获取**：隐藏的区域自动跳过网络请求，不产生无效 API 调用
+* 🚦 **智能红绿灯**：LED 仅根据可见区域的获取结果判定（两者可见则需两者成功才绿）
+* 🎛️ **自定义托盘菜单**：毛玻璃风格 HTML 弹窗，checkbox 选项点击后菜单不消失
+* 🔤 **显示面板/隐藏面板**：托盘首项根据窗口可见状态智能切换标签
+* 🔧 **设置密钥**：原"设置"更名为更明确的"设置密钥"
+
 ### v2.2 (2026-06-11)
 * ⚙️ **设置面板**：托盘右键菜单新增 **设置** 按钮，可配置 DeepSeek API Key
 * 👁️ **密钥显隐切换**：设置面板密钥输入框右侧增加小眼睛按钮，点击可切换密钥显示/隐藏
@@ -233,9 +253,18 @@ It uses a transparent liquid-glass style interface and a simple red / yellow / g
   * DeepSeek API key stays on your machine
   * No data uploaded
 * ⚙️ **Settings panel**
-  * Right-click tray icon → **设置** (Settings) to configure DeepSeek API Key
+  * Right-click tray icon → **设置密钥** (Settings) to configure DeepSeek API Key
   * Eye toggle button to show/hide the key
   * Takes effect immediately after saving
+* 🧩 **Region visibility**
+  * Right-click tray menu → **显隐区域** → toggle Codex / DeepSeek visibility
+  * Hidden regions collapse completely with auto-resizing window
+  * Hidden regions skip network requests entirely
+  * Traffic light only reflects visible regions' fetch status
+* 🎛️ **Custom tray menu**
+  * Glass-morphism HTML popup matching the app aesthetic
+  * Checkbox toggles don't close the menu — configure multiple regions at once
+  * Smart 显示面板/隐藏面板 label switching
 ---
 ## 📸 Screenshots
 <p align="center">
@@ -245,7 +274,7 @@ It uses a transparent liquid-glass style interface and a simple red / yellow / g
 Download the latest Windows `.exe` from the **Releases** page:
 👉 [Download from Releases](https://github.com/sailoun601349/ai-quota-monitor/releases)
 
-Current version: `v2.2`
+Current version: `v3.0`
 ---
 ## 🖥️ Requirements
 * Windows 10 / Windows 11
@@ -253,7 +282,7 @@ Current version: `v2.2`
 * DeepSeek API Key (optional, for balance feature only)
 
 ## ⚙️ DeepSeek Configuration
-Right-click tray icon → **设置** (Settings) to enter your DeepSeek API Key. The key is saved locally and takes effect immediately.
+Right-click tray icon → **设置密钥** (Settings) to enter your DeepSeek API Key. The key is saved locally and takes effect immediately.
 
 Priority: Environment variable `DEEPSEEK_API_KEY` > Settings UI > Built-in default.
 ---
@@ -320,7 +349,9 @@ ai-quota-monitor/
 │     ├─ styles.css           # Liquid glass styles
 │     ├─ renderer.js          # Main UI logic
 │     ├─ settings.html        # Settings UI HTML
-│     └─ settings.js          # Settings UI logic
+│     ├─ settings.js          # Settings UI logic
+│     ├─ traymenu.html        # Tray menu HTML
+│     └─ traymenu.js          # Tray menu logic
 ├─ package.json       # Project config and build scripts
 └─ README.md
 ```

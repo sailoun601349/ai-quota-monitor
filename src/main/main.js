@@ -37,8 +37,10 @@ app.setPath("userData", path.join(app.getPath("appData"), ".ai-quota-monitor"));
 
 let mainWindow;
 let settingsWindow;
+let trayMenuWindow;
 let tray;
 let isAlwaysOnTop = true;
+let regionVisibility = { codex: true, deepseek: true };
 
 function createWindow() {
   const iconPath = path.join(__dirname, "../../assets/icon.ico");
@@ -46,7 +48,7 @@ function createWindow() {
     width: 310,
     height: 155,
     minWidth: 310,
-    minHeight: 155,
+    minHeight: 32,
     icon: iconPath,
     frame: false,
     transparent: true,
@@ -65,6 +67,8 @@ function createWindow() {
   mainWindow.loadFile(path.join(__dirname, "../renderer/index.html"));
   mainWindow.once("ready-to-show", () => {
     mainWindow.show();
+    // Send initial region visibility to renderer
+    mainWindow.webContents.send("region:visibilityChanged", regionVisibility);
     placeWindowTopRight();
   });
 }
@@ -103,6 +107,98 @@ function createSettingsWindow() {
   });
 }
 
+function createTrayMenuWindow() {
+  if (trayMenuWindow) {
+    trayMenuWindow.close();
+    trayMenuWindow = null;
+  }
+
+  trayMenuWindow = new BrowserWindow({
+    width: 132,
+    height: 300,
+    frame: false,
+    transparent: true,
+    resizable: false,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    focusable: true,
+    show: false,
+    backgroundColor: "#00000000",
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js"),
+      contextIsolation: true,
+      nodeIntegration: false
+    }
+  });
+
+  trayMenuWindow.loadFile(path.join(__dirname, "../renderer/traymenu.html"));
+
+  trayMenuWindow.once("ready-to-show", () => {
+    // Send initial state
+    sendTrayMenuState();
+    // Position near tray icon
+    positionTrayMenu();
+    trayMenuWindow.show();
+    trayMenuWindow.focus();
+    // Delay blur listener to avoid immediate fire on Windows
+    setTimeout(() => {
+      if (trayMenuWindow) {
+        trayMenuWindow.on("blur", () => closeTrayMenu());
+      }
+    }, 150);
+  });
+}
+
+function positionTrayMenu() {
+  if (!trayMenuWindow || !tray) return;
+  try {
+    const trayBounds = tray.getBounds();
+    const menuBounds = trayMenuWindow.getBounds();
+    const display = screen.getPrimaryDisplay();
+    const { workArea } = display;
+
+    // Position menu above tray icon, right-aligned to tray icon's right edge
+    let x = Math.round(trayBounds.x + trayBounds.width - menuBounds.width);
+    let y = Math.round(trayBounds.y - menuBounds.height - 4);
+
+    // Clamp to work area
+    if (y < workArea.y) y = Math.round(trayBounds.y + trayBounds.height + 4);
+    if (x < workArea.x) x = workArea.x + 4;
+    if (x + menuBounds.width > workArea.x + workArea.width) {
+      x = workArea.x + workArea.width - menuBounds.width - 4;
+    }
+
+    trayMenuWindow.setPosition(x, y);
+  } catch (_) { /* tray bounds unavailable */ }
+}
+
+function closeTrayMenu() {
+  if (trayMenuWindow) {
+    trayMenuWindow.close();
+    trayMenuWindow = null;
+  }
+}
+
+function sendTrayMenuState() {
+  if (!trayMenuWindow) return;
+  const state = {
+    windowVisible: mainWindow?.isVisible() ?? false,
+    isPinned: isAlwaysOnTop,
+    codexVisible: regionVisibility.codex,
+    deepseekVisible: regionVisibility.deepseek
+  };
+  trayMenuWindow.webContents.send("traymenu:stateUpdated", state);
+}
+
+function getTrayMenuState() {
+  return {
+    windowVisible: mainWindow?.isVisible() ?? false,
+    isPinned: isAlwaysOnTop,
+    codexVisible: regionVisibility.codex,
+    deepseekVisible: regionVisibility.deepseek
+  };
+}
+
 function placeWindowTopRight() {
   if (!mainWindow) return;
   const display = screen.getPrimaryDisplay();
@@ -121,25 +217,31 @@ function createTray() {
   const icon = nativeImage.createFromPath(iconPath);
   tray = new Tray(icon);
   tray.setToolTip("AI 额度监控");
-  rebuildTrayMenu();
+  // Right-click: show custom HTML tray menu
+  tray.on("right-click", () => createTrayMenuWindow());
   tray.on("click", toggleWindow);
 }
 
-function rebuildTrayMenu() {
-  if (!tray) return;
-  tray.setContextMenu(
-    Menu.buildFromTemplate([
-      { label: "显示/隐藏", click: toggleWindow },
-      { label: "刷新额度", click: () => mainWindow?.webContents.send("quota:refresh") },
-      { label: "设置", click: () => openSettings() },
-      {
-        label: isAlwaysOnTop ? "取消置顶" : "置顶",
-        click: () => setAlwaysOnTop(!isAlwaysOnTop)
-      },
-      { type: "separator" },
-      { label: "退出", click: () => app.quit() }
-    ])
-  );
+function loadRegionVisibility() {
+  const cfg = readConfig();
+  if (cfg.hasOwnProperty("codexRegionVisible")) {
+    regionVisibility.codex = Boolean(cfg.codexRegionVisible);
+  }
+  if (cfg.hasOwnProperty("deepseekRegionVisible")) {
+    regionVisibility.deepseek = Boolean(cfg.deepseekRegionVisible);
+  }
+}
+
+function setRegionVisibility(region, visible) {
+  regionVisibility[region] = Boolean(visible);
+  // Persist
+  const cfg = readConfig();
+  cfg[region === "codex" ? "codexRegionVisible" : "deepseekRegionVisible"] = regionVisibility[region];
+  writeConfig(cfg);
+  // Notify main window renderer
+  mainWindow?.webContents.send("region:visibilityChanged", regionVisibility);
+  // Notify tray menu (if open)
+  sendTrayMenuState();
 }
 
 function setAlwaysOnTop(value) {
@@ -148,7 +250,7 @@ function setAlwaysOnTop(value) {
     mainWindow.setAlwaysOnTop(isAlwaysOnTop);
     mainWindow.webContents.send("window:alwaysOnTopChanged", isAlwaysOnTop);
   }
-  rebuildTrayMenu();
+  sendTrayMenuState();
   return isAlwaysOnTop;
 }
 
@@ -160,13 +262,50 @@ function toggleWindow() {
     mainWindow.show();
     mainWindow.focus();
   }
+  sendTrayMenuState();
 }
 
 function openSettings() {
   createSettingsWindow();
 }
 
+// ---- Tray menu action dispatcher ---- //
+function handleTrayMenuAction(action) {
+  switch (action) {
+    case "toggle-window":
+      toggleWindow();
+      closeTrayMenu();
+      break;
+    case "refresh":
+      mainWindow?.webContents.send("quota:refresh");
+      closeTrayMenu();
+      break;
+    case "settings":
+      openSettings();
+      closeTrayMenu();
+      break;
+    case "toggle-codex":
+      setRegionVisibility("codex", !regionVisibility.codex);
+      // Don't close — user may want to toggle more
+      break;
+    case "toggle-deepseek":
+      setRegionVisibility("deepseek", !regionVisibility.deepseek);
+      // Don't close
+      break;
+    case "toggle-pin":
+      setAlwaysOnTop(!isAlwaysOnTop);
+      closeTrayMenu();
+      break;
+    case "quit":
+      app.quit();
+      break;
+  }
+}
+
 app.whenReady().then(() => {
+  // Load saved region visibility before creating tray
+  loadRegionVisibility();
+
   createWindow();
   createTray();
 
@@ -184,6 +323,22 @@ app.whenReady().then(() => {
   ipcMain.handle("window:close", () => app.quit());
   ipcMain.handle("window:alwaysOnTop:get", () => isAlwaysOnTop);
   ipcMain.handle("window:alwaysOnTop:set", (_event, value) => setAlwaysOnTop(value));
+  ipcMain.handle("window:setHeight", (_event, height) => {
+    if (mainWindow) {
+      mainWindow.setSize(310, Math.ceil(height));
+      placeWindowTopRight();
+    }
+  });
+
+  // ---- Region visibility ---- //
+  ipcMain.handle("region:visibility:get", () => regionVisibility);
+
+  // ---- Tray menu ---- //
+  ipcMain.handle("traymenu:getState", () => getTrayMenuState());
+  ipcMain.handle("traymenu:action", (_event, action) => {
+    handleTrayMenuAction(action);
+  });
+  ipcMain.handle("traymenu:close", () => closeTrayMenu());
 
   // ---- Settings ---- //
   ipcMain.handle("settings:getKey", () => {

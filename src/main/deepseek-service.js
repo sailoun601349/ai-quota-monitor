@@ -23,8 +23,8 @@ function getAPIKey(userDataPath) {
     }
   } catch (_) { /* file doesn't exist or is invalid — fall through */ }
 
-  // 3) Built-in default
-  return "sk-8801101afbc74bcd8a532674af958bba";
+  // 3) Built-in default (empty — configure via tray menu or env var)
+  return "";
 }
 
 async function getDeepSeekBalance(userDataPath) {

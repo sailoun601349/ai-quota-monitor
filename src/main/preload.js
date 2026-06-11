@@ -14,10 +14,23 @@ contextBridge.exposeInMainWorld("codexQuota", {
   getDeepSeekKey: () => ipcRenderer.invoke("settings:getKey"),
   setDeepSeekKey: (key) => ipcRenderer.invoke("settings:setKey", key),
   closeSettings: () => ipcRenderer.invoke("settings:close"),
+  // Region visibility
+  getRegionVisibility: () => ipcRenderer.invoke("region:visibility:get"),
+  setHeight: (height) => ipcRenderer.invoke("window:setHeight", height),
   onRefresh: (callback) => {
     ipcRenderer.on("quota:refresh", callback);
   },
   onAlwaysOnTopChanged: (callback) => {
     ipcRenderer.on("window:alwaysOnTopChanged", (_event, value) => callback(value));
+  },
+  onRegionVisibilityChanged: (callback) => {
+    ipcRenderer.on("region:visibilityChanged", (_event, visibility) => callback(visibility));
+  },
+  // Tray menu
+  trayMenuAction: (action) => ipcRenderer.invoke("traymenu:action", action),
+  getTrayMenuState: () => ipcRenderer.invoke("traymenu:getState"),
+  closeTrayMenu: () => ipcRenderer.invoke("traymenu:close"),
+  onTrayMenuStateUpdated: (callback) => {
+    ipcRenderer.on("traymenu:stateUpdated", (_event, state) => callback(state));
   }
 });

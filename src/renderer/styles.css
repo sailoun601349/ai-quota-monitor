@@ -24,7 +24,7 @@ html, body {
 .widget {
   position: relative;
   width: 310px;
-  height: 155px;
+  min-height: 32px;
   background: rgba(20, 22, 30, 0.55);
   backdrop-filter: blur(24px) saturate(1.4);
   -webkit-backdrop-filter: blur(24px) saturate(1.4);
@@ -462,4 +462,15 @@ body[data-state="loading"] .brand-state {
 body[data-state="ready"] .brand-state,
 body[data-state="error"] .brand-state {
   color: inherit;
+}
+
+/* ---- Region Visibility ---- */
+body[data-codex-visible="false"] .divider:nth-of-type(1),
+body[data-codex-visible="false"] .content {
+  display: none;
+}
+
+body[data-deepseek-visible="false"] .divider:nth-of-type(2),
+body[data-deepseek-visible="false"] .deepseek-row {
+  display: none;
 }
