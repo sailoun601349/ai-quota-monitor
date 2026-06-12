@@ -44,56 +44,58 @@
         </div>
       </header>
 
-      <hr class="divider" />
-
-      <section class="content">
-        <div id="liquidMeter" class="liquid-meter" aria-label="Codex 剩余额度">
-          <div class="glass-rim"></div>
-          <div id="liquidFill" class="liquid-fill">
-            <div class="wave wave-one"></div>
-            <div class="wave wave-two"></div>
-          </div>
-          <div class="shine"></div>
-          <div class="meter-copy">
-            <strong id="remaining">--%</strong>
-          </div>
-        </div>
-
-        <div class="cylinder-7day" id="cylinder7day">
-          <div class="cylinder-7day-fill" id="cylinder7dayFill"></div>
-          <div class="cylinder-7day-copy">
-            <span id="cylinder7dayPct">--%</span>
-          </div>
-        </div>
-
-        <div class="quota-panel">
-          <div class="quota-card primary">
-            <div class="quota-card-info">
-              <span id="primaryLabel">5小时</span>
-              <span id="primaryReset" class="reset-time"></span>
+      <div class="region" data-region="codex" data-visible="true">
+        <hr class="divider" />
+        <section class="content">
+          <div id="liquidMeter" class="liquid-meter" aria-label="Codex 剩余额度">
+            <div class="glass-rim"></div>
+            <div id="liquidFill" class="liquid-fill">
+              <div class="wave wave-one"></div>
+              <div class="wave wave-two"></div>
             </div>
-            <strong id="primaryText">--</strong>
-          </div>
-          <div class="quota-card">
-            <div class="quota-card-info">
-              <span id="secondaryLabel">7天</span>
-              <span id="secondaryReset" class="reset-time"></span>
+            <div class="shine"></div>
+            <div class="meter-copy">
+              <strong id="remaining">--%</strong>
             </div>
-            <strong id="secondaryText">--</strong>
           </div>
-          <div class="quota-card slim">
-            <span id="planLabel">订阅方式</span>
-            <strong id="planText">--</strong>
+
+          <div class="cylinder-7day" id="cylinder7day">
+            <div class="cylinder-7day-fill" id="cylinder7dayFill"></div>
+            <div class="cylinder-7day-copy">
+              <span id="cylinder7dayPct">--%</span>
+            </div>
           </div>
-        </div>
-      </section>
 
-      <hr class="divider" />
+          <div class="quota-panel">
+            <div class="quota-card primary">
+              <div class="quota-card-info">
+                <span id="primaryLabel">5小时</span>
+                <span id="primaryReset" class="reset-time"></span>
+              </div>
+              <strong id="primaryText">--</strong>
+            </div>
+            <div class="quota-card">
+              <div class="quota-card-info">
+                <span id="secondaryLabel">7天</span>
+                <span id="secondaryReset" class="reset-time"></span>
+              </div>
+              <strong id="secondaryText">--</strong>
+            </div>
+            <div class="quota-card slim">
+              <span id="planLabel">订阅方式</span>
+              <strong id="planText">--</strong>
+            </div>
+          </div>
+        </section>
+      </div>
 
-      <footer class="deepseek-row">
-        <span id="deepseekText">DeepSeek --</span>
-        <span id="deepseekSpend" class="deepseek-spend">今日消耗 --</span>
-      </footer>
+      <div class="region" data-region="deepseek" data-visible="true">
+        <hr class="divider" />
+        <footer class="deepseek-row">
+          <span id="deepseekText">DeepSeek --</span>
+          <span id="deepseekSpend" class="deepseek-spend">今日消耗 --</span>
+        </footer>
+      </div>
     </main>
 
     <script src="./renderer.js"></script>

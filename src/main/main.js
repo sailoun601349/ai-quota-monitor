@@ -40,7 +40,8 @@ let settingsWindow;
 let trayMenuWindow;
 let tray;
 let isAlwaysOnTop = true;
-let regionVisibility = { codex: true, deepseek: true };
+const DEFAULT_REGIONS = { codex: true, deepseek: true };
+let regionVisibility = { ...DEFAULT_REGIONS };
 
 function createWindow() {
   const iconPath = path.join(__dirname, "../../assets/icon.ico");
@@ -52,7 +53,7 @@ function createWindow() {
     icon: iconPath,
     frame: false,
     transparent: true,
-    resizable: false,
+    resizable: true,
     alwaysOnTop: isAlwaysOnTop,
     skipTaskbar: true,
     show: false,
@@ -184,8 +185,7 @@ function sendTrayMenuState() {
   const state = {
     windowVisible: mainWindow?.isVisible() ?? false,
     isPinned: isAlwaysOnTop,
-    codexVisible: regionVisibility.codex,
-    deepseekVisible: regionVisibility.deepseek
+    regions: { ...regionVisibility }
   };
   trayMenuWindow.webContents.send("traymenu:stateUpdated", state);
 }
@@ -194,22 +194,24 @@ function getTrayMenuState() {
   return {
     windowVisible: mainWindow?.isVisible() ?? false,
     isPinned: isAlwaysOnTop,
-    codexVisible: regionVisibility.codex,
-    deepseekVisible: regionVisibility.deepseek
+    regions: { ...regionVisibility }
   };
+}
+
+function positionWindowTopRight(w, h) {
+  if (!mainWindow) return;
+  const display = screen.getPrimaryDisplay();
+  const { workArea } = display;
+  mainWindow.setPosition(
+    Math.round(workArea.x + workArea.width - w - 24),
+    Math.round(workArea.y + 24)
+  );
 }
 
 function placeWindowTopRight() {
   if (!mainWindow) return;
-  const display = screen.getPrimaryDisplay();
   const { width, height } = mainWindow.getBounds();
-  const { workArea } = display;
-  mainWindow.setBounds({
-    x: workArea.x + workArea.width - width - 24,
-    y: workArea.y + 24,
-    width,
-    height
-  });
+  positionWindowTopRight(width, height);
 }
 
 function createTray() {
@@ -224,19 +226,27 @@ function createTray() {
 
 function loadRegionVisibility() {
   const cfg = readConfig();
-  if (cfg.hasOwnProperty("codexRegionVisible")) {
-    regionVisibility.codex = Boolean(cfg.codexRegionVisible);
-  }
-  if (cfg.hasOwnProperty("deepseekRegionVisible")) {
-    regionVisibility.deepseek = Boolean(cfg.deepseekRegionVisible);
+  // New generic format takes precedence; fall back to legacy keys
+  if (cfg.regionVisibility) {
+    regionVisibility = { ...DEFAULT_REGIONS, ...cfg.regionVisibility };
+  } else {
+    if (cfg.hasOwnProperty("codexRegionVisible")) {
+      regionVisibility.codex = Boolean(cfg.codexRegionVisible);
+    }
+    if (cfg.hasOwnProperty("deepseekRegionVisible")) {
+      regionVisibility.deepseek = Boolean(cfg.deepseekRegionVisible);
+    }
   }
 }
 
 function setRegionVisibility(region, visible) {
   regionVisibility[region] = Boolean(visible);
-  // Persist
+  // Persist in generic format
   const cfg = readConfig();
-  cfg[region === "codex" ? "codexRegionVisible" : "deepseekRegionVisible"] = regionVisibility[region];
+  cfg.regionVisibility = Object.assign(cfg.regionVisibility || {}, regionVisibility);
+  // Clean up legacy keys on save
+  delete cfg.codexRegionVisible;
+  delete cfg.deepseekRegionVisible;
   writeConfig(cfg);
   // Notify main window renderer
   mainWindow?.webContents.send("region:visibilityChanged", regionVisibility);
@@ -269,8 +279,18 @@ function openSettings() {
   createSettingsWindow();
 }
 
-// ---- Tray menu action dispatcher ---- //
+// ---- Tray menu action dispatcher (generic region toggles) ---- //
 function handleTrayMenuAction(action) {
+  // Generic region toggle: "toggle-<region>" (e.g. toggle-codex, toggle-deepseek, …)
+  if (action.startsWith("toggle-") && action !== "toggle-window" && action !== "toggle-pin") {
+    const region = action.slice(7); // strip "toggle-" prefix
+    if (regionVisibility.hasOwnProperty(region)) {
+      setRegionVisibility(region, !regionVisibility[region]);
+      // Don't close — user may want to toggle more
+      return;
+    }
+  }
+
   switch (action) {
     case "toggle-window":
       toggleWindow();
@@ -283,14 +303,6 @@ function handleTrayMenuAction(action) {
     case "settings":
       openSettings();
       closeTrayMenu();
-      break;
-    case "toggle-codex":
-      setRegionVisibility("codex", !regionVisibility.codex);
-      // Don't close — user may want to toggle more
-      break;
-    case "toggle-deepseek":
-      setRegionVisibility("deepseek", !regionVisibility.deepseek);
-      // Don't close
       break;
     case "toggle-pin":
       setAlwaysOnTop(!isAlwaysOnTop);
@@ -324,10 +336,14 @@ app.whenReady().then(() => {
   ipcMain.handle("window:alwaysOnTop:get", () => isAlwaysOnTop);
   ipcMain.handle("window:alwaysOnTop:set", (_event, value) => setAlwaysOnTop(value));
   ipcMain.handle("window:setHeight", (_event, height) => {
-    if (mainWindow) {
-      mainWindow.setSize(310, Math.ceil(height));
-      placeWindowTopRight();
-    }
+    if (!mainWindow) return;
+    const newHeight = Math.ceil(height);
+    const display = screen.getPrimaryDisplay();
+    const { workArea } = display;
+    const x = Math.round(workArea.x + workArea.width - 310 - 24);
+    const y = Math.round(workArea.y + 24);
+    // Atomic setBounds — single call, no getBounds read-back that could pick up stale size
+    mainWindow.setBounds({ x, y, width: 310, height: newHeight });
   });
 
   // ---- Region visibility ---- //

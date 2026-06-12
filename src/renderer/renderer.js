@@ -99,20 +99,32 @@ let isAlwaysOnTop = true;
 let _refreshing = false;
 let _regionVisibility = { codex: true, deepseek: true };
 
-// ---- Region Visibility ---- //
+// ---- Region Visibility (generic — works for any number of providers) ---- //
 function applyRegionVisibility(visibility) {
   _regionVisibility = visibility;
-  dom.body.setAttribute("data-codex-visible", visibility.codex ? "true" : "false");
-  dom.body.setAttribute("data-deepseek-visible", visibility.deepseek ? "true" : "false");
-  // Report new height after CSS takes effect
-  requestAnimationFrame(() => reportHeight());
+  for (const [region, visible] of Object.entries(visibility)) {
+    const el = document.querySelector(`.region[data-region="${region}"]`);
+    if (el) {
+      // Inline style.display bypasses CSS cascade timing — applies synchronously
+      el.style.display = visible ? "" : "none";
+      // Keep data-visible in sync for the CSS safety net
+      el.setAttribute("data-visible", String(visible));
+    }
+  }
+  // Force synchronous layout so getBoundingClientRect returns the post-change size
+  const widget = document.querySelector(".widget");
+  if (widget) void widget.offsetHeight;
+  reportHeight();
 }
 
 function reportHeight() {
   const widget = document.querySelector(".widget");
   if (!widget) return;
   const h = widget.getBoundingClientRect().height;
-  window.codexQuota.setHeight(Math.ceil(h)).catch(() => {});
+  if (h <= 0) return; // skip zero — element not laid out yet
+  window.codexQuota.setHeight(Math.ceil(h)).catch((err) => {
+    console.error("reportHeight setHeight failed:", err);
+  });
 }
 
 // ---- Helpers ---- //
@@ -456,6 +468,15 @@ async function init() {
   window.codexQuota.onRegionVisibilityChanged((visibility) => {
     applyRegionVisibility(visibility);
   });
+
+  // --- ResizeObserver: auto-report widget height on any layout change --- //
+  const widgetEl = document.querySelector(".widget");
+  if (widgetEl) {
+    const ro = new ResizeObserver(() => {
+      reportHeight();
+    });
+    ro.observe(widgetEl);
+  }
 
   // Apply initial region visibility BEFORE first fetch (must await)
   try {

@@ -1,6 +1,6 @@
 {
   "name": "ai-quota-monitor",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "A lightweight tray dashboard for monitoring AI service quotas, balances, and usage.",
   "main": "src/main/main.js",
   "author": "AI Quota Monitor Contributors",
@@ -37,7 +37,7 @@
       ]
     },
     "portable": {
-      "artifactName": "AIQuotaMonitor-V3.0.exe"
+      "artifactName": "AIQuotaMonitor-V3.1.exe"
     }
   },
   "devDependencies": {

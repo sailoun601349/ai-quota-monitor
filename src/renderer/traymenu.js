@@ -5,6 +5,12 @@
 const menu = document.getElementById("menu");
 const items = menu.querySelectorAll(".menu-item[data-action]");
 
+// ---- Region checkbox display names (extend for new providers) ---- //
+const REGION_LABELS = {
+  codex: "Codex",
+  deepseek: "DeepSeek"
+};
+
 // ---- Apply state to UI ---- //
 function applyState(state) {
   // Toggle label
@@ -19,35 +25,37 @@ function applyState(state) {
     itemPin.querySelector("span").textContent = state.isPinned ? "取消置顶" : "置顶";
   }
 
-  // Codex checkbox
-  const itemCodex = document.getElementById("itemCodex");
-  if (itemCodex) {
-    itemCodex.classList.toggle("checked", state.codexVisible);
-  }
+  // Region checkboxes — rebuilt dynamically from state.regions
+  buildRegionCheckboxes(state.regions || {});
+}
 
-  // DeepSeek checkbox
-  const itemDeepseek = document.getElementById("itemDeepseek");
-  if (itemDeepseek) {
-    itemDeepseek.classList.toggle("checked", state.deepseekVisible);
+function buildRegionCheckboxes(regions) {
+  const container = document.getElementById("regionCheckboxes");
+  if (!container) return;
+
+  // Remove old checkboxes
+  container.querySelectorAll(".menu-item.checkbox").forEach(el => el.remove());
+
+  // Build one checkbox per region
+  for (const [region, visible] of Object.entries(regions)) {
+    const label = REGION_LABELS[region] || region;
+    const item = document.createElement("div");
+    item.className = "menu-item checkbox" + (visible ? " checked" : "");
+    item.dataset.action = `toggle-${region}`;
+    item.innerHTML = `<span class="check-mark">✓</span><span>${label}</span>`;
+    item.addEventListener("click", () => {
+      window.codexQuota.trayMenuAction(`toggle-${region}`);
+    });
+    container.appendChild(item);
   }
 }
 
 // ---- Action handlers ---- //
-// Checkbox actions: toggle without closing the menu
-const CHECKBOX_ACTIONS = new Set(["toggle-codex", "toggle-deepseek"]);
-
 items.forEach((item) => {
   item.addEventListener("click", () => {
     const action = item.dataset.action;
     if (!action) return;
-
-    if (CHECKBOX_ACTIONS.has(action)) {
-      // Toggle checkbox — don't close menu, main sends state update back
-      window.codexQuota.trayMenuAction(action);
-    } else {
-      // Action item — execute, main will close menu
-      window.codexQuota.trayMenuAction(action);
-    }
+    window.codexQuota.trayMenuAction(action);
   });
 });
 
